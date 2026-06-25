@@ -1,0 +1,6 @@
+{
+  "name": "Sons Bakery",
+  "description": "An elegant, artisanal bakery showcase with interactive menu selection, a custom cake order builder, a beautiful gallery, and testimonials.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
