@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Menu, X, Sparkles, Cake, Sun, Moon } from 'lucide-react';
+import { motion } from 'motion/react';
 
 interface NavbarProps {
   onQuickOrderClick: () => void;
@@ -25,11 +26,28 @@ export default function Navbar({ onQuickOrderClick, theme, toggleTheme, activeTa
     e.preventDefault();
     setIsMobileMenuOpen(false);
     onTabChange(targetId);
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth'
-    });
+    const element = document.getElementById(targetId);
+    if (element) {
+      const offset = 80; // height of the navbar
+      const bodyRect = document.body.getBoundingClientRect().top;
+      const elementRect = element.getBoundingClientRect().top;
+      const elementPosition = elementRect - bodyRect;
+      const offsetPosition = elementPosition - offset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+    }
   };
+
+  const navItems = [
+    { id: 'home', label: 'Home' },
+    { id: 'about', label: 'Our Story' },
+    { id: 'menu', label: 'Menu' },
+    { id: 'gallery', label: 'Gallery' },
+    { id: 'contact', label: 'Contact' },
+  ];
 
   return (
     <>
@@ -43,74 +61,44 @@ export default function Navbar({ onQuickOrderClick, theme, toggleTheme, activeTa
           <a
             href="#home"
             onClick={(e) => handleNavClick(e, 'home')}
-            className="flex items-center gap-2 group font-logo text-xl md:text-2xl text-primary font-bold tracking-tight"
+            className="flex items-center gap-2 group tracking-tight font-serif text-xl md:text-2xl text-primary font-bold"
           >
             <div className="w-8 h-8 rounded-full bg-primary-container/40 flex items-center justify-center border border-primary/25 group-hover:scale-105 transition-all">
               <Cake className="w-4.5 h-4.5 text-primary" />
             </div>
-            <span className="font-logo">Sons Bakery</span>
+            <span>Sons Bakery</span>
           </a>
 
           {/* Desktop Navigation Links */}
-          <div className="hidden md:flex gap-8 items-center">
-            <a
-              onClick={(e) => handleNavClick(e, 'home')}
-              className={`${
-                activeTab === 'home'
-                  ? 'text-primary font-semibold border-b-2 border-primary/60 pb-0.5'
-                  : 'text-on-surface-variant/80 hover:text-primary'
-              } font-sans text-sm tracking-wide uppercase transition-all duration-200 cursor-pointer`}
-              href="#home"
-            >
-              Home
-            </a>
-            <a
-              onClick={(e) => handleNavClick(e, 'about')}
-              className={`${
-                activeTab === 'about'
-                  ? 'text-primary font-semibold border-b-2 border-primary/60 pb-0.5'
-                  : 'text-on-surface-variant/80 hover:text-primary'
-              } font-sans text-sm tracking-wide uppercase transition-all duration-200 cursor-pointer`}
-              href="#about"
-            >
-              Our Story
-            </a>
-            <a
-              onClick={(e) => handleNavClick(e, 'menu')}
-              className={`${
-                activeTab === 'menu'
-                  ? 'text-primary font-semibold border-b-2 border-primary/60 pb-0.5'
-                  : 'text-on-surface-variant/80 hover:text-primary'
-              } font-sans text-sm tracking-wide uppercase transition-all duration-200 cursor-pointer`}
-              href="#menu"
-            >
-              Menu
-            </a>
-            <a
-              onClick={(e) => handleNavClick(e, 'gallery')}
-              className={`${
-                activeTab === 'gallery'
-                  ? 'text-primary font-semibold border-b-2 border-primary/60 pb-0.5'
-                  : 'text-on-surface-variant/80 hover:text-primary'
-              } font-sans text-sm tracking-wide uppercase transition-all duration-200 cursor-pointer`}
-              href="#gallery"
-            >
-              Gallery
-            </a>
-            <a
-              onClick={(e) => handleNavClick(e, 'contact')}
-              className={`${
-                activeTab === 'contact'
-                  ? 'text-primary font-semibold border-b-2 border-primary/60 pb-0.5'
-                  : 'text-on-surface-variant/80 hover:text-primary'
-              } font-sans text-sm tracking-wide uppercase transition-all duration-200 cursor-pointer`}
-              href="#contact"
-            >
-              Contact
-            </a>
+          <div className="hidden md:flex items-center gap-1.5 bg-surface-container-high/40 border border-outline-variant/15 px-1.5 py-1.5 rounded-full shadow-inner relative">
+            {navItems.map((item) => {
+              const isActive = activeTab === item.id;
+              return (
+                <a
+                  key={item.id}
+                  onClick={(e) => handleNavClick(e, item.id)}
+                  href={`#${item.id}`}
+                  className={`relative px-4 py-1.5 text-xs tracking-wider uppercase font-sans font-semibold rounded-full cursor-pointer transition-colors duration-200 select-none z-10 ${
+                    isActive
+                      ? 'text-primary'
+                      : 'text-on-surface-variant/80 hover:text-on-surface'
+                  }`}
+                >
+                  {isActive && (
+                    <motion.span
+                      layoutId="activeTabIndicator"
+                      className="absolute inset-0 bg-primary-container/30 border border-primary/10 rounded-full -z-10"
+                      transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                    />
+                  )}
+                  {item.label}
+                </a>
+              );
+            })}
+            <div className="w-px h-5 bg-outline-variant/20 mx-1" />
             <button
               onClick={toggleTheme}
-              className="p-2.5 rounded-full bg-surface-alt hover:bg-primary-container/20 text-primary border border-primary/25 hover:border-primary/50 hover:scale-105 transition-all shadow focus:outline-none"
+              className="p-1.5 rounded-full hover:bg-primary-container/20 text-primary transition-all shadow-inner focus:outline-none cursor-pointer"
               aria-label="Toggle Theme"
               title={theme === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
             >
@@ -118,9 +106,9 @@ export default function Navbar({ onQuickOrderClick, theme, toggleTheme, activeTa
             </button>
             <button
               onClick={onQuickOrderClick}
-              className="bg-primary-container text-on-surface hover:text-on-primary-container font-sans font-semibold text-xs uppercase tracking-widest px-6 py-2.5 rounded-full hover:bg-muted-red hover:shadow-lg hover:shadow-primary/10 transition-all duration-300 flex items-center gap-1.5"
+              className="bg-primary text-on-primary hover:scale-[1.02] font-sans font-bold text-[10px] uppercase tracking-wider px-5 py-2 rounded-full shadow-md hover:bg-muted-red hover:shadow-lg transition-all duration-300 flex items-center gap-1 cursor-pointer ml-1"
             >
-              <Sparkles className="w-3.5 h-3.5" />
+              <Sparkles className="w-3 h-3" />
               <span>Order Now</span>
             </button>
           </div>
@@ -151,7 +139,7 @@ export default function Navbar({ onQuickOrderClick, theme, toggleTheme, activeTa
         }`}
       >
         <div className="flex justify-between items-center mb-8 pt-4">
-          <span className="font-logo text-xl text-primary font-bold tracking-tight">Sons Bakery</span>
+          <span className="font-serif text-xl text-primary font-bold tracking-tight">Sons Bakery</span>
           <div className="flex items-center gap-3">
             <button
               onClick={toggleTheme}

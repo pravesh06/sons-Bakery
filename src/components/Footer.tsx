@@ -42,7 +42,7 @@ export default function Footer() {
           <a
             href="#home"
             onClick={(e) => handleNavClick(e, 'home')}
-            className="flex items-center gap-2 font-serif text-xl text-primary font-bold tracking-tight"
+            className="flex items-center gap-2 tracking-tight font-serif text-xl text-primary font-bold"
           >
             <div className="w-8 h-8 rounded-full bg-primary-container/30 flex items-center justify-center border border-primary/15">
               <Cake className="w-4 h-4 text-primary" />

@@ -51,21 +51,35 @@ export default function App() {
   const [orderId, setOrderId] = useState<string>('');
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState<boolean>(false);
 
+  // Smooth scroll helper
+  const smoothScrollTo = (targetId: string) => {
+    const element = document.getElementById(targetId);
+    if (element) {
+      const offset = 80; // height of navbar
+      const bodyRect = document.body.getBoundingClientRect().top;
+      const elementRect = element.getBoundingClientRect().top;
+      const elementPosition = elementRect - bodyRect;
+      const offsetPosition = elementPosition - offset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+    }
+  };
+
   // 1. Navbar / Quick Order Call to Action
   const handleQuickOrder = () => {
-    setActiveTab('menu');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    smoothScrollTo('custom-builder');
   };
 
   // 2. Hero Action buttons
   const handleExploreCakes = () => {
-    setActiveTab('menu');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    smoothScrollTo('menu');
   };
 
   const handleOrderCustom = () => {
-    setActiveTab('menu');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    smoothScrollTo('custom-builder');
   };
 
   // 3. Cake Menu selection
@@ -73,8 +87,7 @@ export default function App() {
     setSelectedCakeType(cakeName);
     setSelectedOptions(options);
     setCustomDesignRecipe(''); // Reset custom designer specs if ordering a signature item
-    setActiveTab('contact');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    smoothScrollTo('contact');
   };
 
   // 4. Custom Dream Cake Submit
@@ -92,8 +105,7 @@ export default function App() {
     });
 
     setCustomDesignRecipe(summaryText);
-    setActiveTab('contact');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    smoothScrollTo('contact');
   };
 
   // 5. Booking Form Submit (Success Modal presentation)
@@ -105,86 +117,40 @@ export default function App() {
     setIsSuccessModalOpen(true);
   };
 
-  // Dynamic router to render one page for every tab with high-end motion transitions
-  const renderTabContent = () => {
-    switch (activeTab) {
-      case 'home':
-        return (
-          <motion.div
-            key="home-page"
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -15 }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
-          >
-            <Hero
-              onExploreCakesClick={handleExploreCakes}
-              onOrderCustomClick={handleOrderCustom}
-            />
-            <Testimonials />
-          </motion.div>
-        );
-      case 'about':
-        return (
-          <motion.div
-            key="about-page"
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -15 }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
-            className="pt-24 min-h-[70vh]"
-          >
-            <About />
-          </motion.div>
-        );
-      case 'menu':
-        return (
-          <motion.div
-            key="menu-page"
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -15 }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
-            className="pt-24 min-h-[70vh]"
-          >
-            <CakeMenu onOrderSelect={handleCakeSelect} />
-            <DreamBuilder onCustomCakeSubmit={handleCustomCakeSubmit} />
-          </motion.div>
-        );
-      case 'gallery':
-        return (
-          <motion.div
-            key="gallery-page"
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -15 }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
-            className="pt-24 min-h-[70vh]"
-          >
-            <GallerySection />
-          </motion.div>
-        );
-      case 'contact':
-        return (
-          <motion.div
-            key="contact-page"
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -15 }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
-            className="pt-24 min-h-[70vh]"
-          >
-            <OrderForm
-              initialCakeType={selectedCakeType}
-              initialOptions={selectedOptions}
-              onSubmitSuccess={handleFormSuccessSubmit}
-            />
-          </motion.div>
-        );
-      default:
-        return null;
-    }
-  };
+  // Scroll Spy to track scroll position and update active navbar item
+  useEffect(() => {
+    if (isLoading) return;
+
+    const handleScroll = () => {
+      // Check if we are at the very bottom of the page
+      if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 15) {
+        setActiveTab('contact');
+        return;
+      }
+
+      const sectionIds = ['home', 'about', 'menu', 'gallery', 'contact'];
+      const scrollPosition = window.scrollY + 120; // adding offset for active zone trigger
+
+      for (let i = sectionIds.length - 1; i >= 0; i--) {
+        const id = sectionIds[i];
+        const el = document.getElementById(id);
+        if (el) {
+          const top = el.offsetTop;
+          if (scrollPosition >= top) {
+            setActiveTab(id);
+            break;
+          }
+        }
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [isLoading]);
 
   return (
     <>
@@ -209,10 +175,23 @@ export default function App() {
                 onTabChange={setActiveTab}
               />
 
-              {/* Dynamic Route Pages Render */}
-              <AnimatePresence mode="wait">
-                {renderTabContent()}
-              </AnimatePresence>
+              {/* Single Page Sections stacked vertically */}
+              <div className="flex flex-col">
+                <Hero
+                  onExploreCakesClick={handleExploreCakes}
+                  onOrderCustomClick={handleOrderCustom}
+                />
+                <About />
+                <CakeMenu onOrderSelect={handleCakeSelect} />
+                <DreamBuilder onCustomCakeSubmit={handleCustomCakeSubmit} />
+                <GallerySection />
+                <Testimonials />
+                <OrderForm
+                  initialCakeType={selectedCakeType}
+                  initialOptions={selectedOptions}
+                  onSubmitSuccess={handleFormSuccessSubmit}
+                />
+              </div>
             </div>
 
             <div>
